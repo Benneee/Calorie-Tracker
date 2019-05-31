@@ -1,0 +1,26 @@
+body {
+  /* color: white; */
+  background-color: black;
+}
+
+h3 {
+  color: white;
+}
+
+.fa.fa-trash {
+  font-size: 30px;
+}
+
+@media (max-width: 600px) {
+  .brand-logo.center {
+    font-size: 20px;
+  }
+  .center-align,
+  .total-calories {
+    font-size: 20px;
+  }
+
+  .fa.fa-trash {
+    font-size: 20px;
+  }
+}
