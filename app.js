@@ -77,6 +77,22 @@ const ItemCtrl = (function() {
       return newItem;
     },
 
+    // Delete item
+    deleteItem: function(id) {
+      // Get the id
+      const ids = data.items.map(item => item.id);
+      // console.log('the id', id);
+
+      // Get the index
+      const index = ids.indexOf(id);
+      // console.log('about to delete', index);
+
+      // Remove the item using the id
+      data.items.splice(index, 1);
+
+      // console.log('deleted');
+    },
+
     setCurrentItem: function(item) {
       data.currentItem = item;
     },
@@ -169,28 +185,41 @@ const UICtrl = (function() {
     },
 
     // Update the UI with updated item
-    updateListItem: function(item) {
+    updateListItem: function(Item) {
       let listItems = document.querySelectorAll(UISelectors.listItems);
 
       // The above gives us a nodelist which means we cannot use a forEach loop on it,
       // Hence, we need to convert it into an array
-      let arrayOfListItems = Array.from(listItems);
+      listItems = Array.from(listItems);
 
-      arrayOfListItems.forEach(function(listItem) {
+      listItems.forEach(function(listItem) {
         const itemID = listItem.getAttribute('id');
-
+        // console.log(itemID === `Item-${Item.id}`);
         // TODO
-        // Fix Update Bug
-
-        if (itemID === `#${item.id}`) {
-          document.querySelector(`${itemID}`).innerHTML = `
-          <strong>${item.name}: </strong><em>${item.calories} Calories</em>
-            <a href="#" class="secondary-content">
-              <i class="edit-item fa fa-pencil"></i>
-            </a>            
-          `;
+        // Fix Update Bug ==> FIXED!
+        if (itemID === `Item-${Item.id}`) {
+          // console.log(Item);
+          document.querySelector(`#${itemID}`).innerHTML = `
+            <strong>${Item.name}: </strong><em>${Item.calories} Calories</em>
+              <a href="#" class="secondary-content">
+                <i class="edit-item fa fa-pencil"></i>
+              </a>            
+            `;
         }
       });
+    },
+
+    // Delete list item
+    deleteListItem: function(ID) {
+      const itemID = `#item-${ID}`;
+      console.log('the ID:', itemID);
+      console.log('the real ID:', document.querySelector(itemID));
+      // if (item === null) {
+      //   console.log('shii aint real:', item);
+      // } else {
+      //   item.remove();
+      // }
+      // item.remove();
     },
 
     // Clear Fields
@@ -255,6 +284,15 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Update Item Event
     document.querySelector(UISelectors.updateBtn).addEventListener('click', itemUpdateSubmit);
+
+    // Back Button Event
+    document.querySelector(UISelectors.backBtn).addEventListener('click', e => {
+      UICtrl.setInitialState();
+      e.preventDefault();
+    });
+
+    // Delete Item Event
+    document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit);
 
     // Disable 'enter' key - submit on enter
     document.addEventListener('keypress', deactivateEnter);
@@ -328,9 +366,34 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Update Item
     const updatedItem = ItemCtrl.updateItem(input.name, input.calories);
-
+    // console.log('update:', updatedItem);
     // Display updated Item
     UICtrl.updateListItem(updatedItem);
+
+    // Get Total Calories
+    const totalCalories = ItemCtrl.getTotalCalories();
+
+    // Display total calories
+    UICtrl.showTotalCalories(totalCalories);
+
+    UICtrl.setInitialState();
+
+    e.preventDefault();
+  };
+
+  // Delete a list item
+  const itemDeleteSubmit = function(e) {
+    // console.log('testing');
+
+    // Get the selected item
+    const currentItem = ItemCtrl.getCurrentItem();
+
+    let ID = currentItem.id;
+    // Delete the selected item
+    ItemCtrl.deleteItem(ID);
+
+    // Delete selected item from the UI
+    UICtrl.deleteListItem(ID);
 
     e.preventDefault();
   };
