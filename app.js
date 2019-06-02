@@ -211,15 +211,13 @@ const UICtrl = (function() {
 
     // Delete list item
     deleteListItem: function(ID) {
-      const itemID = `#item-${ID}`;
+      const itemID = `#Item-${ID}`;
       console.log('the ID:', itemID);
-      console.log('the real ID:', document.querySelector(itemID));
-      // if (item === null) {
-      //   console.log('shii aint real:', item);
-      // } else {
-      //   item.remove();
-      // }
-      // item.remove();
+
+      const item = document.querySelector(itemID);
+      console.log('about to delete:', item, itemID);
+
+      item.remove();
     },
 
     // Clear Fields
@@ -387,7 +385,7 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Get the selected item
     const currentItem = ItemCtrl.getCurrentItem();
-
+    console.log(currentItem);
     let ID = currentItem.id;
     // Delete the selected item
     ItemCtrl.deleteItem(ID);
