@@ -8,6 +8,72 @@
 // The UI Controller is responsible for manipulating our UI abd populating it with data
 
 // Storage Controller
+const StorageCtrl = (function() {
+  // Public methods
+  return {
+    storeItem: function(item) {
+      let items;
+      // Because we can store only strings in LS, we need to call the stringify method on our array
+      // to enable us store the items in LS
+
+      // First, we check if there is any 'items' in Local Storage
+      if (localStorage.getItem('items') === null) {
+        items = [];
+
+        // Push item to the items array
+        items.push(item);
+
+        // Set the items in LS
+        localStorage.setItem('items', JSON.stringify(items));
+      } else {
+        // If LS already has content like ours, we first fetch it
+        // Because it's coming back to us as a string,
+        // We need to wrap it in JSON.parse so it gets converted to an object, array, again.
+        items = JSON.parse(localStorage.getItem('items'));
+
+        // Push new item
+        items.push(item);
+
+        // Reset the items in LS
+        localStorage.setItem('items', JSON.stringify(items));
+      }
+    },
+    // Get items from Local Storage
+    getItemsFromLS: function() {
+      let items;
+
+      items = localStorage.getItem('items') === null ? [] : JSON.parse(localStorage.getItem('items'));
+      return items;
+    },
+
+    // Update Local Storage
+    updateLocalStorage: function(updatedItem) {
+      let items = JSON.parse(localStorage.getItem('items'));
+
+      items.forEach((item, index) => {
+        updatedItem.id === item.id ? items.splice(index, 1, updatedItem) : null;
+      });
+      // Then reset Local Storage
+      localStorage.setItem('items', JSON.stringify(items));
+    },
+
+    // Delete item from LS
+    deleteItemFromLS: function(ID) {
+      let items = JSON.parse(localStorage.getItem('items'));
+
+      items.forEach((item, index) => {
+        ID === item.id ? items.splice(index, 1) : null;
+      });
+      // Reset Local Storage
+      localStorage.setItem('items', JSON.stringify(items));
+    },
+
+    // Clear all Items in Local Storage
+    clearAllItemsFromLS: function() {
+      localStorage.removeItem('items');
+    }
+  };
+})();
 
 // Item Controller
 const ItemCtrl = (function() {
@@ -21,11 +87,12 @@ const ItemCtrl = (function() {
 
   // State / Data Structure
   const data = {
-    items: [
-      // { id: 0, name: 'Fried Rice', calories: 1000 },
-      // { id: 1, name: 'Bread and eggs', calories: 700 },
-      // { id: 2, name: 'Eba and egusi', calories: 1200 }
-    ],
+    // items: [
+    // { id: 0, name: 'Fried Rice', calories: 1000 },
+    // { id: 1, name: 'Bread and eggs', calories: 700 },
+    // { id: 2, name: 'Eba and egusi', calories: 1200 }
+    // ],
+    items: StorageCtrl.getItemsFromLS(),
     currentItem: null,
     totalCalories: 0
   };
@@ -91,6 +158,11 @@ const ItemCtrl = (function() {
       data.items.splice(index, 1);
 
       // console.log('deleted');
+    },
+
+    // Clear all items
+    clearAllItems: function() {
+      data.items = [];
     },
 
     setCurrentItem: function(item) {
@@ -233,6 +305,15 @@ const UICtrl = (function() {
       UICtrl.showEditState();
     },
 
+    removeItems: function() {
+      let listItems = document.querySelectorAll(UISelectors.listItems);
+
+      // Convert to array
+      listItems = Array.from(listItems);
+
+      listItems.forEach(listItem => listItem.remove());
+    },
+
     // Hide List line when ul is empty
     hideList: function() {
       document.querySelector(UISelectors.itemList).style.display = 'none';
@@ -265,7 +346,7 @@ const UICtrl = (function() {
 })();
 
 // App Controller
-const App = (function(ItemCtrl, UICtrl) {
+const App = (function(ItemCtrl, StorageCtrl, UICtrl) {
   // Load event listeners
   const loadEventListeners = function() {
     // Get UI selectors
@@ -291,6 +372,9 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Delete Item Event
     document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit);
+
+    // Clear Button Event
+    document.querySelector(UISelectors.clearBtn).addEventListener('click', clearItemsClick);
 
     // Disable 'enter' key - submit on enter
     document.addEventListener('keypress', deactivateEnter);
@@ -322,6 +406,9 @@ const App = (function(ItemCtrl, UICtrl) {
 
       // Display total calories
       UICtrl.showTotalCalories(totalCalories);
+
+      // Add to Local Storage
+      StorageCtrl.storeItem(newItem);
 
       // Clear input fields
       UICtrl.clearInputFields();
@@ -365,6 +452,7 @@ const App = (function(ItemCtrl, UICtrl) {
     // Update Item
     const updatedItem = ItemCtrl.updateItem(input.name, input.calories);
     // console.log('update:', updatedItem);
+
     // Display updated Item
     UICtrl.updateListItem(updatedItem);
 
@@ -373,6 +461,9 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Display total calories
     UICtrl.showTotalCalories(totalCalories);
+
+    // Update Local Storage
+    StorageCtrl.updateLocalStorage(updatedItem);
 
     UICtrl.setInitialState();
 
@@ -392,6 +483,45 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Delete selected item from the UI
     UICtrl.deleteListItem(ID);
+
+    // Get Total Calories
+    const totalCalories = ItemCtrl.getTotalCalories();
+
+    // Display total calories
+    UICtrl.showTotalCalories(totalCalories);
+
+    // Delete from Local Storage
+    StorageCtrl.deleteItemFromLS(ID);
+
+    // Hide the ul
+    UICtrl.hideList();
+
+    UICtrl.setInitialState();
+
+    e.preventDefault();
+  };
+
+  // Clear the screen
+  const clearItemsClick = function(e) {
+    // console.log('btn clicked!');
+
+    // Delete all items from data structure
+    ItemCtrl.clearAllItems();
+
+    // Get Total Calories
+    const totalCalories = ItemCtrl.getTotalCalories();
+
+    // Display total calories
+    UICtrl.showTotalCalories(totalCalories);
+
+    // Remove from UI
+    UICtrl.removeItems();
+
+    // Clear all Items in Local Storage
+    StorageCtrl.clearAllItemsFromLS();
+
+    // Hide the ul
+    UICtrl.hideList();
 
     e.preventDefault();
   };
@@ -418,7 +548,7 @@ const App = (function(ItemCtrl, UICtrl) {
       loadEventListeners();
     }
   };
-})(ItemCtrl, UICtrl);
+})(ItemCtrl, StorageCtrl, UICtrl);
 
 // Initialising the app
 App.init();
