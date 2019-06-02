@@ -212,10 +212,10 @@ const UICtrl = (function() {
     // Delete list item
     deleteListItem: function(ID) {
       const itemID = `#Item-${ID}`;
-      console.log('the ID:', itemID);
+      // console.log('the ID:', itemID);
 
       const item = document.querySelector(itemID);
-      console.log('about to delete:', item, itemID);
+      // console.log('about to delete:', item, itemID);
 
       item.remove();
     },
@@ -385,7 +385,7 @@ const App = (function(ItemCtrl, UICtrl) {
 
     // Get the selected item
     const currentItem = ItemCtrl.getCurrentItem();
-    console.log(currentItem);
+    // console.log(currentItem);
     let ID = currentItem.id;
     // Delete the selected item
     ItemCtrl.deleteItem(ID);
